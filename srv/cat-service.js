@@ -132,11 +132,12 @@ module.exports = async function () {
                 }
             );
             await createNoti.mainPayload({
-                product: "Manufacturer Code: " + PricingNotifications.Pricing_Conditions_manufacturerCode,
-                category: "Country Code: " + PricingNotifications.Pricing_Conditions_countryCode,
-                stock: "434543",
+                manufacturerCode: "Manufacturer Code: " + PricingNotifications.Pricing_Conditions_manufacturerCode,
+                countryCode: "Country Code: " + PricingNotifications.Pricing_Conditions_countryCode,
+                from_mail: req.user.id,
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                priority: "High"
             });
             // }
             // return 0;
@@ -160,11 +161,12 @@ module.exports = async function () {
                 }
             );
             await createNoti.mainPayload({
-                product: "Manufacturer Code: " + VendorNotifications.Vendor_List_manufacturerCode,
-                category: "Country Code: " + VendorNotifications.Vendor_List_localManufacturerCode,
-                stock: "434543",
+                manufacturerCode: "Manufacturer Code: " + VendorNotifications.Vendor_List_manufacturerCode,
+                countryCode: "Country Code: " + VendorNotifications.Vendor_List_localManufacturerCode,
+                from_mail: req.user.id,
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                priority: "High"
             });
 
             // }
@@ -208,12 +210,13 @@ module.exports = async function () {
                     );
                 }
             }
-            createNoti.mainPayload({
-                product: "Manufacturer Code: " + req.data.manufacturerCode,
-                category: "Country Code: " + req.data.countryCode,
-                stock: "434543",
+            await createNoti.mainPayload({
+                manufacturerCode: "Manufacturer Code: " + req.data.manufacturerCode,
+                countryCode: "Country Code: " + req.data.countryCode,
+                from_mail: req.user.id,
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "butuksrin1@ferrero.com"]
+                    "butuksrin1@ferrero.com"],
+                priority: "High"
             });
             // }
             return 0;
@@ -246,11 +249,12 @@ module.exports = async function () {
                 }
             );
             await createNoti.mainPayload({
-                product: "Manufacturer Code: " + VendorComments.Vendor_List_manufacturerCode,
-                category: "Country Code: " + VendorComments.Vendor_List_countryCode,
-                stock: "434543",
+                manufacturerCode: "Manufacturer Code: " + VendorComments.Vendor_List_manufacturerCode,
+                countryCode: "Country Code: " + VendorComments.Vendor_List_countryCode,
+                from_mail: req.user.id,
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                priority: "High"
             });
             // }
             // return 0;
@@ -282,11 +286,12 @@ module.exports = async function () {
                 }
             );
             await createNoti.mainPayload({
-                product: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
-                category: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
-                stock: "434543",
+                manufacturerCode: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
+                countryCode: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
+                from_mail: req.user.id,
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                priority: "High"
             });
             // }
             // return 0;
