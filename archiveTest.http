@@ -1,0 +1,12 @@
+
+### update functionality testing
+
+PUT http://localhost:4004/v2/MroSrv/VendorNotifications(guid'3c726ce1-31e1-4ea2-834b-cbc789f10557')
+Content-Type: application/json;IEEE754Compatible=true
+
+{
+    "Vendor_List_manufacturerCode":"5466",
+    "Vendor_List_localManufacturerCode":"4654",
+    "Vendor_List_countryCode":"AG",
+    "status_code":"Approved"
+}

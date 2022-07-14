@@ -87,15 +87,17 @@ entity countriesCodeList {
 
 // @cds.autoexpose
 entity Vendor_Comments : managed {
-    key uuid        : UUID;
-        Comment     : String;
-        Vendor_List : Association to Vendor_List;
+    key uuid         : UUID;
+        Comment      : String;
+        Vendor_List  : Association to Vendor_List;
+        vendor_Notif : Association to Vendor_Notifications;
 }
 
 entity Pricing_Comments : managed {
     key uuid               : UUID;
         Comment            : String;
         Pricing_Conditions : Association to Pricing_Conditions;
+        pricing_Notif      : Association to Pricing_Notifications;
 }
 
 entity Pricing_Notifications : managed {

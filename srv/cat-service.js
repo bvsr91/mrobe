@@ -9,7 +9,9 @@ module.exports = async function () {
         User_Approve_Maintain,
         Pricing_Conditions,
         Vendor_Notifications,
-        Pricing_Notifications
+        Pricing_Notifications,
+        Vendor_Comments,
+        Pricing_Comments
     } = db.entities("ferrero.mro");
     this.on("READ", "CheckUserRole", async (req, next) => {
         var result;
@@ -93,7 +95,7 @@ module.exports = async function () {
             "Pricing_Conditions_countryCode": req.countryCode,
             "status_code": "Pending"
         });
-        createNoti.mainPayload({
+        await createNoti.mainPayload({
             manufacturerCode: req.manufacturerCode,
             countryCode: req.countryCode,
             from_mail: req.initiator,
@@ -164,7 +166,7 @@ module.exports = async function () {
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
                     "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
             });
-            
+
             // }
             // return 0;
         } catch (err) {
@@ -218,5 +220,79 @@ module.exports = async function () {
         } catch (err) {
             req.error(err);
         }
+    });
+
+    this.on("INSERT", "VendorComments", async (req, next) => {
+        var VendorComments = await next();
+        try {
+            // var returnValue = "0";
+            await UPDATE('Vendor_Notifications').with({
+                status_code: "Rejected",
+                approver: req.user.id,
+                approvedDate: new Date().toISOString(),
+                completionDate: new Date().toISOString()
+            }).where(
+                {
+                    uuid: VendorComments.vendor_Notif_uuid
+                }
+            );
+            await UPDATE('Vendor_List').with({
+                status_code: "Rejected"
+            }).where(
+                {
+                    manufacturerCode: VendorComments.Vendor_List_manufacturerCode,
+                    localManufacturerCode: VendorComments.Vendor_List_localManufacturerCode,
+                    countryCode: VendorComments.Vendor_List_countryCode
+                }
+            );
+            await createNoti.mainPayload({
+                product: "Manufacturer Code: " + VendorComments.Vendor_List_manufacturerCode,
+                category: "Country Code: " + VendorComments.Vendor_List_countryCode,
+                stock: "434543",
+                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+            });
+            // }
+            // return 0;
+        } catch (err) {
+            req.error(err);
+        }
+        return VendorComments;
+    });
+    this.on("INSERT", "PricingComments", async (req, next) => {
+        var PricingComments = await next();
+        try {
+            // var returnValue = "0";
+            await UPDATE('Pricing_Notifications').with({
+                status_code: "Rejected",
+                approver: req.user.id,
+                approvedDate: new Date().toISOString(),
+                completionDate: new Date().toISOString()
+            }).where(
+                {
+                    uuid: PricingComments.pricing_Notif_uuid
+                }
+            );
+            await UPDATE('Pricing_Conditions').with({
+                status_code: "Rejected"
+            }).where(
+                {
+                    manufacturerCode: PricingComments.Pricing_Conditions_manufacturerCode,
+                    countryCode: PricingComments.Pricing_Conditions_countryCode
+                }
+            );
+            await createNoti.mainPayload({
+                product: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
+                category: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
+                stock: "434543",
+                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
+                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"]
+            });
+            // }
+            // return 0;
+        } catch (err) {
+            req.error(err);
+        }
+        return PricingComments;
     });
 }
