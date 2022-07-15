@@ -1,5 +1,6 @@
 const cds = require('@sap/cds');
 const createNoti = require('./createNotification');
+const vendorNoti = require('./createVendorNotification');
 module.exports = async function () {
     const db = await cds.connect.to('db')
     const {
@@ -15,53 +16,54 @@ module.exports = async function () {
     } = db.entities("ferrero.mro");
     this.on("READ", "CheckUserRole", async (req, next) => {
         var result;
-        var logOnUser = req.user.id;
+        var logOnUser = req.user.id.toUpperCase();
+        // console.log("log on user:   " + req.user);
         if (logOnUser && logOnUser !== "") {
             try {
-                result = await SELECT.from(Users_Role_Assign).where({ userid: req.user.id });
+                result = await SELECT.from(Users_Role_Assign).where({ userid: req.user.id.toUpperCase() });
             } catch (err) {
-                return err;
+                req.reject(500, "logon user unavailable");
             }
             return result;
         } else {
-            req.error(500, "logon user unavailable");
+            req.reject(500, "logon user unavailable");
         }
     });
     this.before("INSERT", "PricingConditions", async (req, next) => {
-        try {
-            var result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id });
-            if (result.length > 0) {
-                req.data.approver = result[0].managerid;
-                req.data.initiator = req.user.id;
-                req.data.status_code = "Pending";
-                req.data.initiator = req.user.id;
-                req.data.uuid = cds.utils.uuid();
-                return req;
-            } else {
-                req.error("Please assign manager to the user " + req.user.id);
-            }
-        } catch (err) {
-            req.error("500", error);
+        // try {
+        var result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
+        if (result.length > 0) {
+            req.data.approver = result[0].managerid;
+            req.data.initiator = req.user.id.toUpperCase();
+            req.data.status_code = "Pending";
+            req.data.initiator = req.user.id.toUpperCase();
+            req.data.uuid = cds.utils.uuid();
+            return req;
+        } else {
+            req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
         }
+        // } catch (err) {
+        //     req.reject("500", err);
+        // }
     });
 
 
     this.before("INSERT", "VendorList", async (req, next) => {
-        var logOnUser = req.user.id;
-        try {
-            result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id });
-            if (result.length > 0) {
-                req.data.approver = result[0].managerid;
-                req.data.initiator = req.user.id;
-                req.data.status_code = "Pending";
-                req.data.uuid = cds.utils.uuid();
-                return req;
-            } else {
-                req.error("Please assign manager to the user " + req.user.id);
-            }
-        } catch (err) {
-            req.error("500", error);
+        var logOnUser = req.user.id.toUpperCase();
+        // try {
+        result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
+        if (result.length > 0) {
+            req.data.approver = result[0].managerid;
+            req.data.initiator = req.user.id.toUpperCase();
+            req.data.status_code = "Pending";
+            req.data.uuid = cds.utils.uuid();
+            return req;
+        } else {
+            req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
         }
+        // } catch (err) {
+        //     req.reject("500", err);
+        // }
     });
 
     this.after("INSERT", "VendorList", async (req, next) => {
@@ -70,6 +72,7 @@ module.exports = async function () {
             var mailId, managerid;
             if (result.length > 0) {
                 managerid = result[0].managerid;
+                mailId = result[0].mail_id;
                 // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
             }
 
@@ -81,15 +84,23 @@ module.exports = async function () {
                 "Vendor_List_countryCode": req.countryCode,
                 "status_code": "Pending"
             });
-            await createNoti.mainPayload({
-                manufacturerCode: req.manufacturerCode,
-                countryCode: req.countryCode,
-                from_mail: req.initiator,
-                recipients: [result[0].mail_id],
+            // await createNoti.mainPayload({
+            //     manufacturerCode: req.manufacturerCode,
+            //     countryCode: req.countryCode,
+            //     from_mail: req.initiator,
+            //     recipients: [mailId],
+            //     priority: "High"
+            // });
+            await vendorNoti.mainPayload({
+                requestType: "New",
+                requestDetail: "Manufacturer- " + req.manufacturerCode + " & Local Manufacturer- " + req.localManufacturerCode
+                    + " & Country- " + req.countryCode,
+                from_user: req.initiator,
+                recipients: [mailId],
                 priority: "High"
             });
         } catch (err) {
-            req.error("500", error);
+            req.reject(400, err);
         }
         return req;
     });
@@ -100,6 +111,7 @@ module.exports = async function () {
         var mailId, managerid;
         if (result.length > 0) {
             managerid = result[0].managerid;
+            mailId = result[0].mail_id;
             // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
         }
         await INSERT.into(Pricing_Notifications).entries({
@@ -110,24 +122,24 @@ module.exports = async function () {
             "status_code": "Pending"
         });
         await createNoti.mainPayload({
-            manufacturerCode: req.manufacturerCode,
-            countryCode: req.countryCode,
-            from_mail: req.initiator,
-            recipients: [result[0].mail_id],
+            requestType: "New",
+            requestDetail: "Manufacturer- " + req.manufacturerCode + " & Country- " + req.countryCode,
+            from_user: req.initiator,
+            recipients: [mailId],
             priority: "High"
         });
         return req;
     });
 
     this.before("INSERT", "VendorComments", async (req, next) => {
-        var logOnUser = req.user.id;
-        // req.data.initiator = req.user.id;
+        var logOnUser = req.user.id.toUpperCase();
+        // req.data.initiator = req.user.id.toUpperCase();
         req.data.uuid = cds.utils.uuid();
         return req;
     });
     this.before("INSERT", "PricingComments", async (req, next) => {
-        var logOnUser = req.user.id;
-        // req.data.initiator = req.user.id;
+        var logOnUser = req.user.id.toUpperCase();
+        // req.data.initiator = req.user.id.toUpperCase();
         req.data.uuid = cds.utils.uuid();
         return req;
     });
@@ -156,17 +168,22 @@ module.exports = async function () {
                     countryCode: PricingNotifications.Pricing_Conditions_countryCode
                 }
             );
+            // await createNoti.mainPayload({
+            //     manufacturerCode: "Manufacturer Code: " + PricingNotifications.Pricing_Conditions_manufacturerCode,
+            //     countryCode: "Country Code: " + PricingNotifications.Pricing_Conditions_countryCode,
+            //     from_mail: PricingNotifications.approver,
+            //     recipients: [mailId],
+            //     priority: "High"
+            // });
             await createNoti.mainPayload({
-                manufacturerCode: "Manufacturer Code: " + PricingNotifications.Pricing_Conditions_manufacturerCode,
-                countryCode: "Country Code: " + PricingNotifications.Pricing_Conditions_countryCode,
-                from_mail: PricingNotifications.approver,
+                requestType: "Approved",
+                requestDetail: "Manufacturer- " + PricingNotifications.Pricing_Conditions_manufacturerCode + " & Country- " + PricingNotifications.Pricing_Conditions_countryCode,
+                from_user: PricingNotifications.approver,
                 recipients: [mailId],
-                priority: "High"
+                priority: "Low"
             });
-            // }
-            // return 0;
         } catch (err) {
-            req.error(err);
+            req.reject(400, err);
         }
         return PricingNotifications;
     });
@@ -195,18 +212,25 @@ module.exports = async function () {
                     countryCode: VendorNotifications.Vendor_List_countryCode
                 }
             );
-            await createNoti.mainPayload({
-                manufacturerCode: "Manufacturer Code: " + VendorNotifications.Vendor_List_manufacturerCode,
-                countryCode: "Country Code: " + VendorNotifications.Vendor_List_localManufacturerCode,
-                from_mail: req.user.id,
+            // await createNoti.mainPayload({
+            //     manufacturerCode: "Manufacturer Code: " + VendorNotifications.Vendor_List_manufacturerCode,
+            //     countryCode: "Country Code: " + VendorNotifications.Vendor_List_localManufacturerCode,
+            //     from_mail: req.user.id.toUpperCase(),
+            //     recipients: [mailId],
+            //     priority: "High"
+            // });
+
+            await vendorNoti.mainPayload({
+                requestType: "Approved",
+                requestDetail: "Manufacturer- " + VendorNotifications.Vendor_List_manufacturerCode + " & Local Manufacturer- " + VendorNotifications.Vendor_List_localManufacturerCode
+                    + " & Country- " + VendorNotifications.Vendor_List_countryCode,
+                from_user: req.user.id.toUpperCase(),
                 recipients: [mailId],
                 priority: "High"
             });
 
-            // }
-            // return 0;
         } catch (err) {
-            req.error(err);
+            req.reject(400, err);
         }
         return VendorNotifications;
     });
@@ -218,7 +242,7 @@ module.exports = async function () {
                 status_code: "Approved",
                 approvedDate: new Date().toISOString(),
                 completionDate: new Date().toISOString(),
-                approver: req.user.id
+                approver: req.user.id.toUpperCase()
             }).where({
                 uuid: req.data.uuid
             });
@@ -247,25 +271,37 @@ module.exports = async function () {
             await createNoti.mainPayload({
                 manufacturerCode: "Manufacturer Code: " + req.data.manufacturerCode,
                 countryCode: "Country Code: " + req.data.countryCode,
-                from_mail: req.user.id,
+                from_mail: req.user.id.toUpperCase(),
                 recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
                     "butuksrin1@ferrero.com"],
-                priority: "High"
+                priority: "Low"
             });
             // }
             return 0;
         } catch (err) {
-            req.error(err);
+            req.reject(400, err);
         }
     });
 
     this.on("INSERT", "VendorComments", async (req, next) => {
         var VendorComments = await next();
         try {
-            // var returnValue = "0";
+            oVendList = await SELECT.one(Vendor_List).where(
+                {
+                    manufacturerCode: VendorComments.Vendor_List_manufacturerCode,
+                    localManufacturerCode: VendorComments.Vendor_List_localManufacturerCode,
+                    countryCode: VendorComments.Vendor_List_countryCode
+                }
+            );
+            oResult = await SELECT.one("UserDetails").where({ userid: oVendList.createdBy });
+            var mailId, managerid;
+            if (oResult) {
+                mailId = oResult.mail_id;
+            }
+
             await UPDATE('Vendor_Notifications').with({
                 status_code: "Rejected",
-                approver: req.user.id,
+                approver: req.user.id.toUpperCase(),
                 approvedDate: new Date().toISOString(),
                 completionDate: new Date().toISOString()
             }).where(
@@ -282,18 +318,23 @@ module.exports = async function () {
                     countryCode: VendorComments.Vendor_List_countryCode
                 }
             );
-            await createNoti.mainPayload({
-                manufacturerCode: "Manufacturer Code: " + VendorComments.Vendor_List_manufacturerCode,
-                countryCode: "Country Code: " + VendorComments.Vendor_List_countryCode,
-                from_mail: req.user.id,
-                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+            // await createNoti.mainPayload({
+            //     manufacturerCode: "Manufacturer Code: " + VendorComments.Vendor_List_manufacturerCode,
+            //     countryCode: "Country Code: " + VendorComments.Vendor_List_countryCode,
+            //     from_mail: req.user.id.toUpperCase(),
+            //     recipients: [mailId],
+            //     priority: "High"
+            // });
+            await vendorNoti.mainPayload({
+                requestType: "Rejected",
+                requestDetail: "Manufacturer- " + VendorComments.Vendor_List_manufacturerCode + " & Local Manufacturer- " + VendorComments.Vendor_List_localManufacturerCode
+                    + " & Country- " + VendorComments.Vendor_List_countryCode,
+                from_user: req.user.id.toUpperCase(),
+                recipients: [mailId],
                 priority: "High"
             });
-            // }
-            // return 0;
         } catch (err) {
-            req.error(err);
+            req.reject(400, err);
         }
         return VendorComments;
     });
@@ -314,7 +355,7 @@ module.exports = async function () {
 
             await UPDATE('Pricing_Notifications').with({
                 status_code: "Rejected",
-                approver: req.user.id,
+                approver: req.user.id.toUpperCase(),
                 approvedDate: new Date().toISOString(),
                 completionDate: new Date().toISOString()
             }).where(
@@ -330,17 +371,24 @@ module.exports = async function () {
                     countryCode: PricingComments.Pricing_Conditions_countryCode
                 }
             );
+            // await createNoti.mainPayload({
+            //     manufacturerCode: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
+            //     countryCode: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
+            //     from_mail: req.user.id.toUpperCase(),
+            //     recipients: [mailId],
+            //     priority: "High"
+            // });
             await createNoti.mainPayload({
-                manufacturerCode: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
-                countryCode: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
-                from_mail: req.user.id,
+                requestType: "Rejected",
+                requestDetail: "Manufacturer- " + PricingComments.Pricing_Conditions_manufacturerCode + " & Country- " + PricingComments.Pricing_Conditions_countryCode,
+                from_user: req.user.id.toUpperCase(),
                 recipients: [mailId],
                 priority: "High"
             });
             // }
             // return 0;
         } catch (err) {
-            req.error(err);
+            req.reject(400, err);
         }
         return PricingComments;
     });

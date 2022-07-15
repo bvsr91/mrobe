@@ -1,12 +1,9 @@
-
-### update functionality testing
-
-PUT http://localhost:4004/v2/MroSrv/VendorNotifications(guid'3ec07f21-04d7-470c-b676-d15641b1e26f')
+POST http://localhost:4004/v2/MroSrv/PricingComments
 Content-Type: application/json;IEEE754Compatible=true
 
 {
-    "Vendor_List_manufacturerCode":"12000",
-    "Vendor_List_localManufacturerCode":"45555",
-    "Vendor_List_countryCode":"IN",
-    "status_code":"Approved"
+    "Pricing_Conditions_manufacturerCode":"546",
+    "Pricing_Conditions_countryCode":"AG",
+    "Comment":"PRcing Rejection",
+    "pricing_Notif_uuid":"002f06ba-0bf3-4d19-ae7e-d3c0fb60dc57"
 }

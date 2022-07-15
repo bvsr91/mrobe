@@ -1,6 +1,6 @@
 const { NotificationService } = require("./util/NotificationAPI");
 
-const NOTIF_TYPE_KEY = "Pricing Request";
+const NOTIF_TYPE_KEY = "Vendor Request";
 const NOTIF_TYPE_VERSION = "1.0";
 
 function createNotificationType() {
@@ -10,11 +10,11 @@ function createNotificationType() {
         Templates: [
             {
                 Language: "en",
-                TemplatePublic: "A new Pricng Request needs your attention!",
-                TemplateSensitive: "{{requestType}} Pricing Request: {{requestDetail}} from {{from_user}}",
-                TemplateGrouped: "Pricing Request(s)",
+                TemplatePublic: "A new Vendor Request needs your attention!",
+                TemplateSensitive: "{{requestType}} Vendor Request: {{requestDetail}} from {{from_user}}",
+                TemplateGrouped: "Vendor Request(s)",
                 TemplateLanguage: "Mustache",
-                Subtitle: "Pricing Request"
+                Subtitle: "Vendor Request"
             }
         ]
     }
@@ -23,7 +23,7 @@ function createNotificationType() {
 function createNotification({ requestType, requestDetail, from_user, recipients, priority }) {
 
     return {
-        OriginId: "Pricing Request1",
+        OriginId: NOTIF_TYPE_KEY,
         NotificationTypeKey: NOTIF_TYPE_KEY,
         NotificationTypeVersion: NOTIF_TYPE_VERSION,
         NavigationTargetAction: "display",
