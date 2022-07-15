@@ -23,7 +23,7 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.Roles;
+    ])                        as projection on my.Roles;
 
     entity Users @(restrict : [
         {
@@ -34,7 +34,7 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.Users_Role_Assign;
+    ])                        as projection on my.Users_Role_Assign;
 
     entity MaintainApproval @(restrict : [
         {
@@ -45,29 +45,33 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.User_Approve_Maintain;
+    ])                        as projection on my.User_Approve_Maintain;
 
-    entity VendorList @(restrict : [
-        {
-            grant : 'READ',
-            to    : 'mrobeReadOnly_sc'
-        },
-        {
-            grant : ['*'],
-            to    : 'mrobeUser_sc'
-        }
-    ])                   as projection on my.Vendor_List;
+    entity VendorList
+                              // @(restrict : [
+                              //     {
+                              //         grant : 'READ',
+                              //         to    : 'mrobeReadOnly_sc'
+                              //     },
+                              //     {
+                              //         grant : ['*'],
+                              //         to    : 'mrobeUser_sc'
+                              //     }
+                              // ])
+                              as projection on my.Vendor_List;
 
-    entity PricingConditions @(restrict : [
-        {
-            grant : 'READ',
-            to    : 'mrobeReadOnly_sc'
-        },
-        {
-            grant : ['*'],
-            to    : 'mrobeUser_sc'
-        }
-    ])                   as projection on my.Pricing_Conditions;
+    entity PricingConditions
+                              // @(restrict : [
+                              //     {
+                              //         grant : 'READ',
+                              //         to    : 'mrobeReadOnly_sc'
+                              //     },
+                              //     {
+                              //         grant : ['*'],
+                              //         to    : 'mrobeUser_sc'
+                              //     }
+                              // ])
+                              as projection on my.Pricing_Conditions;
 
     entity StatusCodeList @(restrict : [
         {
@@ -78,7 +82,7 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.statusList;
+    ])                        as projection on my.statusList;
 
     entity CountriesCodeList @(restrict : [
         {
@@ -89,7 +93,7 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.countriesCodeList;
+    ])                        as projection on my.countriesCodeList;
     // entity VendorComments    as projection on my.vendorComments
 
     entity VendorComments @(restrict : [
@@ -101,18 +105,20 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.Vendor_Comments;
+    ])                        as projection on my.Vendor_Comments;
 
-    entity PricingComments @(restrict : [
-        {
-            grant : 'READ',
-            to    : 'mrobeReadOnly_sc'
-        },
-        {
-            grant : ['*'],
-            to    : 'mrobeUser_sc'
-        }
-    ])                   as projection on my.Pricing_Comments;
+    entity PricingComments
+                              // @(restrict : [
+                              //     {
+                              //         grant : 'READ',
+                              //         to    : 'mrobeReadOnly_sc'
+                              //     },
+                              //     {
+                              //         grant : ['*'],
+                              //         to    : 'mrobeUser_sc'
+                              //     }
+                              // ])
+                              as projection on my.Pricing_Comments;
 
     entity PricingNotifications @(restrict : [
         {
@@ -123,18 +129,20 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
             grant : ['*'],
             to    : 'mrobeUser_sc'
         }
-    ])                   as projection on my.Pricing_Notifications;
+    ])                        as projection on my.Pricing_Notifications;
 
-    entity VendorNotifications @(restrict : [
-        {
-            grant : 'READ',
-            to    : 'mrobeReadOnly_sc'
-        },
-        {
-            grant : ['*'],
-            to    : 'mrobeUser_sc'
-        }
-    ])                   as projection on my.Vendor_Notifications;
+    entity VendorNotifications
+                              //  @(restrict : [
+                              //     {
+                              //         grant : 'READ',
+                              //         to    : 'mrobeReadOnly_sc'
+                              //     },
+                              //     {
+                              //         grant : ['*'],
+                              //         to    : 'mrobeUser_sc'
+                              //     }
+                              // ])
+                              as projection on my.Vendor_Notifications;
 
     @(restrict : [{
         grant : ['*'],
@@ -143,6 +151,9 @@ service MroService @(impl : './cat-service.js') @(path : '/MroSrv') {
     action approvePricing(uuid : String, manufacturerCode : String, countryCode : String) returns String;
 
     @readonly
-    entity CheckUserRole as projection on my.Users_Role_Assign;
+    entity CheckUserRole      as projection on my.Users_Role_Assign;
 
+    @readonly
+    entity UserDetails        as projection on my.UserDetails;
+// select key a.userid, a.mail_id, a.role, a.country, b.managerid from my.Users_Role_Assign as a inner join my.User_Approve_Maintain as b on a.userid = b.userid;
 }

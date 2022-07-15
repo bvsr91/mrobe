@@ -10,3 +10,17 @@ Content-Type: application/json;IEEE754Compatible=true
     "Vendor_List_countryCode":"AG",
     "status_code":"Approved"
 }
+
+
+
+### update functionality testing
+
+POST http://localhost:4004/v2/MroSrv/PricingComments
+Content-Type: application/json;IEEE754Compatible=true
+
+{
+    "Pricing_Conditions_manufacturerCode":"12000",
+    "Pricing_Conditions_countryCode":"AE",
+    "Comment":"PRcing Rejection",
+    "pricing_Notif_uuid":"76f922cf-b595-4b6c-b6e9-dbdad806584c"
+}

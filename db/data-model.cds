@@ -117,3 +117,14 @@ entity Vendor_Notifications : managed {
         status         : Association to statusList;
         Vendor_List    : Association to Vendor_List;
 }
+
+view UserDetails as
+    select
+        key a.userid,
+            a.mail_id,
+            a.role,
+            a.country,
+            b.managerid
+    from Users_Role_Assign as a
+    inner join User_Approve_Maintain as b
+        on a.userid = b.userid;

@@ -66,31 +66,45 @@ module.exports = async function () {
 
     this.after("INSERT", "VendorList", async (req, next) => {
         try {
+            result = await SELECT.from("UserDetails").where({ userid: req.approver });
+            var mailId, managerid;
+            if (result.length > 0) {
+                managerid = result[0].managerid;
+                // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
+            }
+
             await INSERT.into(Vendor_Notifications).entries({
                 "uuid": cds.utils.uuid(),
-                // "ref_id": req.uuid,
+                "approver": req.approver,
                 "Vendor_List_manufacturerCode": req.manufacturerCode,
                 "Vendor_List_localManufacturerCode": req.localManufacturerCode,
                 "Vendor_List_countryCode": req.countryCode,
                 "status_code": "Pending"
             });
+            await createNoti.mainPayload({
+                manufacturerCode: req.manufacturerCode,
+                countryCode: req.countryCode,
+                from_mail: req.initiator,
+                recipients: [result[0].mail_id],
+                priority: "High"
+            });
         } catch (err) {
             req.error("500", error);
         }
-        // req.data.uuid = cds.utils.uuid();
         return req;
     });
 
     this.after("INSERT", "PricingConditions", async (req, next) => {
         // var finalInfo = await next();
-        result = await SELECT.from(Users_Role_Assign).where({ userid: req.approver });
-        var mailId;
+        result = await SELECT.from("UserDetails").where({ userid: req.approver });
+        var mailId, managerid;
         if (result.length > 0) {
-            mailId = result[0].mail_id;
+            managerid = result[0].managerid;
+            // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
         }
         await INSERT.into(Pricing_Notifications).entries({
             "uuid": cds.utils.uuid(),
-            // "ref_id": req.uuid,
+            "approver": req.approver,
             "Pricing_Conditions_manufacturerCode": req.manufacturerCode,
             "Pricing_Conditions_countryCode": req.countryCode,
             "status_code": "Pending"
@@ -99,8 +113,7 @@ module.exports = async function () {
             manufacturerCode: req.manufacturerCode,
             countryCode: req.countryCode,
             from_mail: req.initiator,
-            recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+            recipients: [result[0].mail_id],
             priority: "High"
         });
         return req;
@@ -123,6 +136,18 @@ module.exports = async function () {
         var PricingNotifications = await next();
         try {
             // var returnValue = "0";
+            oPricingCond = await SELECT.one(Pricing_Conditions).where(
+                {
+                    manufacturerCode: PricingNotifications.Pricing_Conditions_manufacturerCode,
+                    countryCode: PricingNotifications.Pricing_Conditions_countryCode
+                }
+            );
+            oResult = await SELECT.one("UserDetails").where({ userid: oPricingCond.createdBy });
+            var mailId, managerid;
+            if (oResult) {
+                mailId = oResult.mail_id;
+            }
+
             await UPDATE('Pricing_Conditions').with({
                 status_code: PricingNotifications.status_code
             }).where(
@@ -134,9 +159,8 @@ module.exports = async function () {
             await createNoti.mainPayload({
                 manufacturerCode: "Manufacturer Code: " + PricingNotifications.Pricing_Conditions_manufacturerCode,
                 countryCode: "Country Code: " + PricingNotifications.Pricing_Conditions_countryCode,
-                from_mail: req.user.id,
-                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                from_mail: PricingNotifications.approver,
+                recipients: [mailId],
                 priority: "High"
             });
             // }
@@ -150,7 +174,18 @@ module.exports = async function () {
     this.on("UPDATE", "VendorNotifications", async (req, next) => {
         var VendorNotifications = await next();
         try {
-            // var returnValue = "0";
+            oVendList = await SELECT.one(Vendor_List).where(
+                {
+                    manufacturerCode: VendorNotifications.Vendor_List_manufacturerCode,
+                    localManufacturerCode: VendorNotifications.Vendor_List_localManufacturerCode,
+                    countryCode: VendorNotifications.Vendor_List_countryCode
+                }
+            );
+            oResult = await SELECT.one("UserDetails").where({ userid: oVendList.createdBy });
+            var mailId, managerid;
+            if (oResult) {
+                mailId = oResult.mail_id;
+            }
             await UPDATE('Vendor_List').with({
                 status_code: VendorNotifications.status_code
             }).where(
@@ -164,8 +199,7 @@ module.exports = async function () {
                 manufacturerCode: "Manufacturer Code: " + VendorNotifications.Vendor_List_manufacturerCode,
                 countryCode: "Country Code: " + VendorNotifications.Vendor_List_localManufacturerCode,
                 from_mail: req.user.id,
-                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                recipients: [mailId],
                 priority: "High"
             });
 
@@ -266,7 +300,18 @@ module.exports = async function () {
     this.on("INSERT", "PricingComments", async (req, next) => {
         var PricingComments = await next();
         try {
-            // var returnValue = "0";
+            oPricingCond = await SELECT.one(Pricing_Conditions).where(
+                {
+                    manufacturerCode: PricingComments.Pricing_Conditions_manufacturerCode,
+                    countryCode: PricingComments.Pricing_Conditions_countryCode
+                }
+            );
+            oResult = await SELECT.one("UserDetails").where({ userid: oPricingCond.createdBy });
+            var mailId, managerid;
+            if (oResult) {
+                mailId = oResult.mail_id;
+            }
+
             await UPDATE('Pricing_Notifications').with({
                 status_code: "Rejected",
                 approver: req.user.id,
@@ -289,8 +334,7 @@ module.exports = async function () {
                 manufacturerCode: "Pricing Rejection ===>  Manufacturer Code: " + PricingComments.Pricing_Conditions_manufacturerCode,
                 countryCode: "Country Code: " + PricingComments.Pricing_Conditions_countryCode,
                 from_mail: req.user.id,
-                recipients: ["SrinivasaReddy.BUTUKURI@guest.ferrero.com", "Divya.EMURI@guest.ferrero.com",
-                    "Janbunathan.PRIYADHARSHINI@guest.ferrero.com"],
+                recipients: [mailId],
                 priority: "High"
             });
             // }
