@@ -39,6 +39,7 @@ entity Vendor_List : managed {
         approver                  : String(10);
         // status                    : String(10);
         status                    : Association to statusList;
+        v_notif                   : Composition of Vendor_Notifications;
 }
 
 entity Pricing_Conditions : managed {
@@ -59,6 +60,7 @@ entity Pricing_Conditions : managed {
         // to_status            : Association to statusList;
         // status               : String(10);
         status               : Association to statusList;
+        p_notif              : Composition of Pricing_Notifications;
 }
 
 // entity statusList CodeList {{
@@ -73,6 +75,8 @@ entity statusList : CodeList {
             A = 'Approved';
             R = 'Rejected';
             D = 'Deleted';
+            I = 'In Progress';
+            F = 'Forwarded';
         } default 'Pending'; //> will be used for foreign keys as well
         criticality             : Integer; //  2: yellow colour,  3: green colour, 0: unknown
         createDeleteHidden      : Boolean;
@@ -128,3 +132,17 @@ view UserDetails as
     from Users_Role_Assign as a
     inner join User_Approve_Maintain as b
         on a.userid = b.userid;
+
+view VendorNotifications_U as
+    select * from Vendor_Notifications
+    where
+        createdBy = upper($user)
+    order by
+        modifiedAt desc;
+
+view VendorNotifications_A as
+    select * from Vendor_Notifications
+    where
+        approver = upper($user)
+    order by
+        modifiedAt desc;

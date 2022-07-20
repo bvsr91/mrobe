@@ -1,9 +1,10 @@
-POST http://localhost:4004/v2/MroSrv/PricingComments
+POST http://localhost:4004/v2/MroSrv/PricingConditions
 Content-Type: application/json;IEEE754Compatible=true
 
 {
-    "Pricing_Conditions_manufacturerCode":"546",
-    "Pricing_Conditions_countryCode":"AG",
-    "Comment":"PRcing Rejection",
-    "pricing_Notif_uuid":"002f06ba-0bf3-4d19-ae7e-d3c0fb60dc57"
+    "manufacturerCode":"461",
+    "countryCode":"IN",
+    "p_notif":{
+        
+    }
 }

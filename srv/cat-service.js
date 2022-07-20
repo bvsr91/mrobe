@@ -30,40 +30,57 @@ module.exports = async function () {
         }
     });
     this.before("INSERT", "PricingConditions", async (req, next) => {
-        // try {
-        var result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
-        if (result.length > 0) {
-            req.data.approver = result[0].managerid;
-            req.data.initiator = req.user.id.toUpperCase();
-            req.data.status_code = "Pending";
-            req.data.initiator = req.user.id.toUpperCase();
-            req.data.uuid = cds.utils.uuid();
-            return req;
-        } else {
-            req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
+        try {
+            var result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
+            if (result.length > 0) {
+                req.data.approver = result[0].managerid;
+                req.data.initiator = req.user.id.toUpperCase();
+                req.data.status_code = "Pending";
+                req.data.initiator = req.user.id.toUpperCase();
+                req.data.uuid = cds.utils.uuid();
+
+                if (req.data.p_notif) {
+                    req.data.p_notif.Pricing_Conditions_manufacturerCode = req.data.manufacturerCode;
+                    req.data.p_notif.Pricing_Conditions_countryCode = req.data.countryCode;
+                    req.data.p_notif.approver = result[0].managerid;
+                    req.data.p_notif.status_code = "Pending";
+                }
+
+                return req;
+            } else {
+                req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
+            }
+        } catch (err) {
+            req.reject("500", err);
         }
-        // } catch (err) {
-        //     req.reject("500", err);
-        // }
     });
 
 
     this.before("INSERT", "VendorList", async (req, next) => {
         var logOnUser = req.user.id.toUpperCase();
-        // try {
-        result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
-        if (result.length > 0) {
-            req.data.approver = result[0].managerid;
-            req.data.initiator = req.user.id.toUpperCase();
-            req.data.status_code = "Pending";
-            req.data.uuid = cds.utils.uuid();
-            return req;
-        } else {
-            req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
+        try {
+            result = await SELECT.from(User_Approve_Maintain).where({ userid: req.user.id.toUpperCase() });
+            if (result.length > 0) {
+                req.data.approver = result[0].managerid;
+                req.data.initiator = req.user.id.toUpperCase();
+                req.data.status_code = "Pending";
+                req.data.uuid = cds.utils.uuid();
+
+                if (req.data.v_notif) {
+                    req.data.v_notif.Vendor_List_manufacturerCode = req.data.manufacturerCode;
+                    req.data.v_notif.Vendor_List_localManufacturerCode = req.data.localManufacturerCode;
+                    req.data.v_notif.Vendor_List_countryCode = req.data.countryCode;
+                    req.data.v_notif.approver = result[0].managerid;
+                    req.data.v_notif.status_code = "Pending";
+                }
+
+                return req;
+            } else {
+                req.reject(400, "Manager not assigned", "Please assign manager to the user " + req.user.id.toUpperCase());
+            }
+        } catch (err) {
+            req.reject("500", err);
         }
-        // } catch (err) {
-        //     req.reject("500", err);
-        // }
     });
 
     this.after("INSERT", "VendorList", async (req, next) => {
@@ -76,14 +93,14 @@ module.exports = async function () {
                 // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
             }
 
-            await INSERT.into(Vendor_Notifications).entries({
-                "uuid": cds.utils.uuid(),
-                "approver": req.approver,
-                "Vendor_List_manufacturerCode": req.manufacturerCode,
-                "Vendor_List_localManufacturerCode": req.localManufacturerCode,
-                "Vendor_List_countryCode": req.countryCode,
-                "status_code": "Pending"
-            });
+            // await INSERT.into(Vendor_Notifications).entries({
+            //     "uuid": cds.utils.uuid(),
+            //     "approver": req.approver,
+            //     "Vendor_List_manufacturerCode": req.manufacturerCode,
+            //     "Vendor_List_localManufacturerCode": req.localManufacturerCode,
+            //     "Vendor_List_countryCode": req.countryCode,
+            //     "status_code": "Pending"
+            // });
             // await createNoti.mainPayload({
             //     manufacturerCode: req.manufacturerCode,
             //     countryCode: req.countryCode,
@@ -114,13 +131,13 @@ module.exports = async function () {
             mailId = result[0].mail_id;
             // var oManagerInfo = await SELECT.one(Users_Role_Assign).where({ userid: managerid });
         }
-        await INSERT.into(Pricing_Notifications).entries({
-            "uuid": cds.utils.uuid(),
-            "approver": req.approver,
-            "Pricing_Conditions_manufacturerCode": req.manufacturerCode,
-            "Pricing_Conditions_countryCode": req.countryCode,
-            "status_code": "Pending"
-        });
+        // await INSERT.into(Pricing_Notifications).entries({
+        //     "uuid": cds.utils.uuid(),
+        //     "approver": req.approver,
+        //     "Pricing_Conditions_manufacturerCode": req.manufacturerCode,
+        //     "Pricing_Conditions_countryCode": req.countryCode,
+        //     "status_code": "Pending"
+        // });
         await createNoti.mainPayload({
             requestType: "New",
             requestDetail: "Manufacturer- " + req.manufacturerCode + " & Country- " + req.countryCode,
